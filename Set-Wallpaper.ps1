@@ -7,20 +7,34 @@
     which registers an hourly Windows Scheduled Task) to rotate the desktop wallpaper
     using a random image pulled from a chosen folder.
 
+    - Picks the source folder based on today's date (see $SeasonalFolders below) -
+      unless -ImageFolder is passed explicitly, which always wins.
     - Avoids repeating the same image twice in a row (when more than one image exists).
     - Sets the wallpaper style to "Fill" so images of any size/aspect ratio look right.
     - Logs each run to wallpaper.log next to this script for troubleshooting.
 
 .NOTES
-    Edit the default value of -ImageFolder below to point at a different folder,
-    or pass -ImageFolder "C:\some\other\path" when calling the script.
+    To add or change seasonal folders, edit the $SeasonalFolders list below - each
+    entry is a date range (month/day, year-independent) and the folder to use during
+    it. Ranges are checked in order and the first match wins; nothing matching falls
+    back to $DefaultImageFolder.
 #>
 
 param(
-    [string]$ImageFolder = "C:\Users\ctouzel\OneDrive\Art",
+    [string]$ImageFolder = "",
     [bool]$IncludeSubfolders = $true,
     [string]$StateFile = "C:\Equus\last-wallpaper.txt",
     [string]$LogFile = "C:\Equus\wallpaper.log"
+)
+
+# Used whenever today's date doesn't fall inside any range below.
+$DefaultImageFolder = "C:\Users\ctouzel\OneDrive\Art"
+
+# Date ranges are Month/Day only (the year is ignored) and are inclusive on
+# both ends. A range may wrap the new year (e.g. StartMonth/Day = 12/15,
+# EndMonth/Day = 1/5) and that's handled correctly below.
+$SeasonalFolders = @(
+    @{ Name = "Fall"; StartMonth = 9; StartDay = 15; EndMonth = 10; EndDay = 20; Folder = "C:\Users\ctouzel\OneDrive\ArtFall" }
 )
 
 function Write-Log {
@@ -29,9 +43,48 @@ function Write-Log {
     "$timestamp  $Message" | Out-File -FilePath $LogFile -Append -Encoding utf8
 }
 
+function Get-SeasonalFolder {
+    param(
+        [datetime]$Date,
+        [array]$Rules,
+        [string]$FallbackFolder
+    )
+
+    $todayKey = $Date.Month * 100 + $Date.Day
+
+    foreach ($rule in $Rules) {
+        $startKey = $rule.StartMonth * 100 + $rule.StartDay
+        $endKey = $rule.EndMonth * 100 + $rule.EndDay
+
+        $inRange = if ($startKey -le $endKey) {
+            $todayKey -ge $startKey -and $todayKey -le $endKey
+        }
+        else {
+            # Range wraps around the new year (e.g. Dec 15 -> Jan 5)
+            $todayKey -ge $startKey -or $todayKey -le $endKey
+        }
+
+        if ($inRange) {
+            return [pscustomobject]@{ Name = $rule.Name; Folder = $rule.Folder }
+        }
+    }
+
+    return [pscustomobject]@{ Name = "Default"; Folder = $FallbackFolder }
+}
+
 $extensions = @("*.jpg", "*.jpeg", "*.png", "*.bmp")
 
 try {
+    $selection = $null
+    if ([string]::IsNullOrWhiteSpace($ImageFolder)) {
+        $selection = Get-SeasonalFolder -Date (Get-Date) -Rules $SeasonalFolders -FallbackFolder $DefaultImageFolder
+        $ImageFolder = $selection.Folder
+        Write-Log "Season: $($selection.Name) -> using folder $ImageFolder"
+    }
+    else {
+        Write-Log "Using explicitly passed folder: $ImageFolder"
+    }
+
     if (-not (Test-Path $ImageFolder)) {
         Write-Log "ERROR: Image folder not found: $ImageFolder"
         exit 1

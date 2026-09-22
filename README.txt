@@ -4,30 +4,42 @@ Equus - Random Hourly Wallpaper Changer
 What's here
 ------------
 Set-Wallpaper.ps1      The script that picks a random image and sets it as your wallpaper.
-Install-Task.ps1       Registers two Scheduled Tasks: one that runs the script hourly, one at logon.
+Install-Task.ps1       Registers Scheduled Tasks: one that runs the script hourly (required),
+                        one at logon (optional - some managed PCs block this, that's fine).
 Install.bat            Double-click this to run the installer (no PowerShell fiddling needed).
 Uninstall-Task.ps1 /
-Uninstall.bat           Removes both scheduled tasks if you ever want to stop the rotation.
-wallpaper.log           Created automatically after the first run; shows what happened each time.
+Uninstall.bat           Removes the scheduled task(s) if you ever want to stop the rotation.
+wallpaper.log           Created automatically after the first run; shows what happened each time,
+                        including which seasonal folder was chosen.
 last-wallpaper.txt      Created automatically; remembers the last image used so it isn't repeated back-to-back.
 
 Setup (one time)
 ----------------
 1. Double-click Install.bat (a console window will open and prompt you to press a key when done).
-2. That's it. It creates two Scheduled Tasks:
-   - "Equus Wallpaper Changer" - runs every hour, indefinitely.
-   - "Equus Wallpaper Changer (Logon)" - runs once whenever you log in.
-   It also runs the script once immediately so your wallpaper changes right away.
+2. That's it. It creates the hourly Scheduled Task (and the logon one, if permitted), and runs
+   the script once immediately so your wallpaper changes right away.
 
-Where it picks images from
----------------------------
-By default the script uses:
-    C:\Users\ctouzel\OneDrive\Art
-including subfolders, and picks .jpg, .jpeg, .png, and .bmp files.
+Where it picks images from (seasonal folders)
+-----------------------------------------------
+The script checks today's date against a list of date ranges and picks the matching folder.
+Right now:
 
-To point it at a different folder, open Set-Wallpaper.ps1 in Notepad and change the line:
-    [string]$ImageFolder = "C:\Users\ctouzel\OneDrive\Art",
-to the folder you want, then save. No need to reinstall the tasks.
+    Sep 15 - Oct 20  ->  C:\Users\ctouzel\OneDrive\ArtFall
+    Any other date   ->  C:\Users\ctouzel\OneDrive\Art   (the default)
+
+Subfolders are included, and it picks .jpg, .jpeg, .png, and .bmp files.
+
+To add more seasonal folders (e.g. a winter/holiday set, a summer set), open
+Set-Wallpaper.ps1 in Notepad and add another line to the $SeasonalFolders list near the top,
+following the same pattern as the Fall entry:
+
+    @{ Name = "Winter"; StartMonth = 12; StartDay = 1; EndMonth = 1; EndDay = 15; Folder = "C:\Users\ctouzel\OneDrive\ArtWinter" }
+
+Ranges can cross the new year (like the Winter example above, Dec 1 -> Jan 15) and that's
+handled automatically. Ranges are checked top to bottom and the first match wins. No need to
+reinstall the scheduled task after editing - it just picks up the new list on its next hourly run.
+
+To change the year-round default folder, edit the $DefaultImageFolder line instead.
 
 How the image is sized to your screen
 ---------------------------------------
@@ -39,24 +51,19 @@ same as picking "Fill" under Settings > Personalization > Background.
 Checking it's working / troubleshooting
 ----------------------------------------
 - Open Task Scheduler (search for it in the Start menu) and look under the Task Scheduler
-  Library for "Equus Wallpaper Changer" and "Equus Wallpaper Changer (Logon)" to see run
-  history and next run time.
-- Open C:\Equus\wallpaper.log to see a timestamped line for every run, including any errors
-  (e.g. if the image folder can't be found or is empty).
+  Library for "Equus Wallpaper Changer" (and "Equus Wallpaper Changer (Logon)" if it exists)
+  to see run history and next run time.
+- Open C:\Equus\wallpaper.log to see a timestamped line for every run - it now also logs
+  which seasonal folder was selected and why (e.g. "Season: Fall -> using folder ...").
 - To test the script manually at any time, right-click Set-Wallpaper.ps1 and choose
   "Run with PowerShell".
 
 Removing it
 -----------
-Double-click Uninstall.bat. This deletes both scheduled tasks only - it does not touch your
+Double-click Uninstall.bat. This deletes the scheduled task(s) only - it does not touch your
 images or the Equus folder itself.
 
 Notes
 -----
-- This only randomizes wallpaper every hour (and at logon); it doesn't yet do anything based
-  on season or special dates. That logic can be added later as a second phase of Equus (e.g.
-  picking from a season-specific subfolder, or swapping in a themed image on specific dates)
-  by extending Set-Wallpaper.ps1 - the random-pick and wallpaper-setting plumbing here will
-  still be used.
 - The tasks run as your regular Windows user (not as Administrator), since setting your own
   wallpaper doesn't need admin rights.

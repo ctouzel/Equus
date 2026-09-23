@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     Registers Windows Scheduled Tasks that run Equus's Set-Wallpaper.ps1
-    every hour and (if permitted) at logon.
+    every hour and (if permitted) at logon - with no visible window.
 
 .DESCRIPTION
     Run this once (double-click Install.bat) to set up the wallpaper rotation.
@@ -15,6 +15,11 @@
     schtasks' native HOURLY schedule type repeats forever with no duration
     value involved, so the bug can't occur.
 
+    The task runs Invoke-Hidden.vbs (via wscript.exe) rather than powershell.exe
+    directly. powershell.exe's own -WindowStyle Hidden still briefly flashes a
+    console window before it takes effect; wscript.exe has no console window at
+    all and launches the PowerShell process truly hidden.
+
     The hourly task is the one that matters and is treated as required.
     The logon task is a nice-to-have extra; some managed/corporate machines
     block non-admin accounts from creating logon-triggered tasks ("Access is
@@ -23,8 +28,7 @@
 
 $hourlyTaskName = "Equus Wallpaper Changer"
 $logonTaskName = "Equus Wallpaper Changer (Logon)"
-$scriptPath = "C:\Equus\Set-Wallpaper.ps1"
-$action = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptPath`""
+$action = "wscript.exe `"C:\Equus\Invoke-Hidden.vbs`""
 
 function Remove-IfExists {
     param([string]$Name)

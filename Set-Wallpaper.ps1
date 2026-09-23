@@ -31,10 +31,13 @@ param(
 $DefaultImageFolder = "C:\Users\ctouzel\OneDrive\Art"
 
 # Date ranges are Month/Day only (the year is ignored) and are inclusive on
-# both ends. A range may wrap the new year (e.g. StartMonth/Day = 12/15,
-# EndMonth/Day = 1/5) and that's handled correctly below.
+# both ends. A range may wrap the new year (e.g. StartMonth/Day = 12/26,
+# EndMonth/Day = 1/31) and that's handled correctly below.
 $SeasonalFolders = @(
     @{ Name = "Fall"; StartMonth = 9; StartDay = 15; EndMonth = 10; EndDay = 20; Folder = "C:\Users\ctouzel\OneDrive\ArtFall" }
+    @{ Name = "Halloween"; StartMonth = 10; StartDay = 28; EndMonth = 10; EndDay = 31; Folder = "C:\Users\ctouzel\OneDrive\ArtHalloween" }
+    @{ Name = "Christmas"; StartMonth = 11; StartDay = 25; EndMonth = 12; EndDay = 25; Folder = "C:\Users\ctouzel\OneDrive\ArtChristmas" }
+    @{ Name = "Winter"; StartMonth = 12; StartDay = 26; EndMonth = 1; EndDay = 31; Folder = "C:\Users\ctouzel\OneDrive\ArtWinter" }
 )
 
 function Write-Log {
@@ -60,7 +63,7 @@ function Get-SeasonalFolder {
             $todayKey -ge $startKey -and $todayKey -le $endKey
         }
         else {
-            # Range wraps around the new year (e.g. Dec 15 -> Jan 5)
+            # Range wraps around the new year (e.g. Dec 26 -> Jan 31)
             $todayKey -ge $startKey -or $todayKey -le $endKey
         }
 

@@ -23,21 +23,35 @@
 param(
     [string]$ImageFolder = "",
     [bool]$IncludeSubfolders = $true,
-    [string]$StateFile = "C:\Equus\last-wallpaper.txt",
-    [string]$LogFile = "C:\Equus\wallpaper.log"
+    [string]$StateFile = "",
+    [string]$LogFile = ""
 )
 
+# State and log files live next to this script, wherever it's installed
+# (C:\Equus on the laptop, D:\Equus on the Main Desktop, ...).
+if ([string]::IsNullOrWhiteSpace($StateFile)) { $StateFile = Join-Path $PSScriptRoot "last-wallpaper.txt" }
+if ([string]::IsNullOrWhiteSpace($LogFile)) { $LogFile = Join-Path $PSScriptRoot "wallpaper.log" }
+
+# OneDrive folder holding the Art* folders, per computer. The first one that
+# exists on this machine is used - add a line here for any new computer.
+$ArtRootCandidates = @(
+    "C:\Users\ctouzel\OneDrive"        # Laptop
+    "D:\OneDrivePersonal\OneDrive"      # Main Desktop
+)
+$ArtRoot = $ArtRootCandidates | Where-Object { Test-Path (Join-Path $_ "Art") } | Select-Object -First 1
+if (-not $ArtRoot) { $ArtRoot = $ArtRootCandidates[0] }
+
 # Used whenever today's date doesn't fall inside any range below.
-$DefaultImageFolder = "C:\Users\ctouzel\OneDrive\Art"
+$DefaultImageFolder = Join-Path $ArtRoot "Art"
 
 # Date ranges are Month/Day only (the year is ignored) and are inclusive on
 # both ends. A range may wrap the new year (e.g. StartMonth/Day = 12/26,
 # EndMonth/Day = 1/31) and that's handled correctly below.
 $SeasonalFolders = @(
-    @{ Name = "Fall"; StartMonth = 9; StartDay = 15; EndMonth = 10; EndDay = 20; Folder = "C:\Users\ctouzel\OneDrive\ArtFall" }
-    @{ Name = "Halloween"; StartMonth = 10; StartDay = 28; EndMonth = 10; EndDay = 31; Folder = "C:\Users\ctouzel\OneDrive\ArtHalloween" }
-    @{ Name = "Christmas"; StartMonth = 11; StartDay = 25; EndMonth = 12; EndDay = 25; Folder = "C:\Users\ctouzel\OneDrive\ArtChristmas" }
-    @{ Name = "Winter"; StartMonth = 12; StartDay = 26; EndMonth = 1; EndDay = 31; Folder = "C:\Users\ctouzel\OneDrive\ArtWinter" }
+    @{ Name = "Fall"; StartMonth = 9; StartDay = 15; EndMonth = 10; EndDay = 20; Folder = (Join-Path $ArtRoot "ArtFall") }
+    @{ Name = "Halloween"; StartMonth = 10; StartDay = 28; EndMonth = 10; EndDay = 31; Folder = (Join-Path $ArtRoot "ArtHalloween") }
+    @{ Name = "Christmas"; StartMonth = 11; StartDay = 25; EndMonth = 12; EndDay = 25; Folder = (Join-Path $ArtRoot "ArtChristmas") }
+    @{ Name = "Winter"; StartMonth = 12; StartDay = 26; EndMonth = 1; EndDay = 31; Folder = (Join-Path $ArtRoot "ArtWinter") }
 )
 
 function Write-Log {

@@ -26,11 +26,16 @@ Where it picks images from (seasonal folders)
 The script checks today's date against a list of date ranges and picks the matching folder.
 Right now:
 
-    Sep 15 - Oct 20   ->  C:\Users\ctouzel\OneDrive\ArtFall
-    Oct 28 - Oct 31   ->  C:\Users\ctouzel\OneDrive\ArtHalloween
-    Nov 25 - Dec 25   ->  C:\Users\ctouzel\OneDrive\ArtChristmas
-    Dec 26 - Jan 31   ->  C:\Users\ctouzel\OneDrive\ArtWinter
-    Any other date    ->  C:\Users\ctouzel\OneDrive\Art   (the default)
+    Sep 15 - Oct 20   ->  <OneDrive>\ArtFall
+    Oct 28 - Oct 31   ->  <OneDrive>\ArtHalloween
+    Nov 25 - Dec 25   ->  <OneDrive>\ArtChristmas
+    Dec 26 - Jan 31   ->  <OneDrive>\ArtWinter
+    Any other date    ->  <OneDrive>\Art   (the default)
+
+    <OneDrive> is picked per computer from $ArtRootCandidates in
+    Set-Wallpaper.ps1 (laptop: C:\Users\ctouzel\OneDrive,
+    Main Desktop: D:\OneDrivePersonal\OneDrive). Scripts work from any
+    install folder (C:\Equus, D:\Equus, ...).
 
 Subfolders are included, and it picks .jpg, .jpeg, .png, and .bmp files.
 

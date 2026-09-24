@@ -28,7 +28,7 @@
 
 $hourlyTaskName = "Equus Wallpaper Changer"
 $logonTaskName = "Equus Wallpaper Changer (Logon)"
-$action = "wscript.exe `"C:\Equus\Invoke-Hidden.vbs`""
+$action = "wscript.exe `"$PSScriptRoot\Invoke-Hidden.vbs`""
 
 function Remove-IfExists {
     param([string]$Name)
@@ -73,4 +73,4 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host ""
-Write-Host "Done. Check C:\Equus\wallpaper.log if the wallpaper doesn't change."
+Write-Host "Done. Check $PSScriptRoot\wallpaper.log if the wallpaper doesn't change."

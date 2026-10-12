@@ -48,6 +48,7 @@ $DefaultImageFolder = Join-Path $ArtRoot "Art"
 # both ends. A range may wrap the new year (e.g. StartMonth/Day = 12/26,
 # EndMonth/Day = 1/31) and that's handled correctly below.
 $SeasonalFolders = @(
+    @{ Name = "Summer"; StartMonth = 6; StartDay = 25; EndMonth = 7; EndDay = 31; Folder = (Join-Path $ArtRoot "ArtSummer") }
     @{ Name = "Fall"; StartMonth = 9; StartDay = 15; EndMonth = 10; EndDay = 20; Folder = (Join-Path $ArtRoot "ArtFall") }
     @{ Name = "Halloween"; StartMonth = 10; StartDay = 28; EndMonth = 10; EndDay = 31; Folder = (Join-Path $ArtRoot "ArtHalloween") }
     @{ Name = "Christmas"; StartMonth = 11; StartDay = 25; EndMonth = 12; EndDay = 25; Folder = (Join-Path $ArtRoot "ArtChristmas") }
